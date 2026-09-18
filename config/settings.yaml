@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# RAG Project — Central Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+paths:
+  documents_dir: "data/documents"       # Drop documents here for ingestion
+  vectorstore_dir: "vectorstore"        # ChromaDB persists here
+  logs_dir: "logs"
+
+# ── Embedding Model ──────────────────────────────────────────────────────────
+embedding:
+  model_name: "all-MiniLM-L6-v2"        # Fast & accurate — 384-dim vectors
+  # Alternatives (comment out the above and uncomment one below):
+  # model_name: "all-mpnet-base-v2"     # Higher quality — 768-dim vectors
+  # model_name: "BAAI/bge-small-en-v1.5" # Excellent multilingual
+  batch_size: 64
+  normalize_embeddings: true             # L2 normalize for cosine sim
+  device: "auto"                         # "auto" | "cpu" | "cuda" | "mps"
+
+# ── Chunking ─────────────────────────────────────────────────────────────────
+chunking:
+  chunk_size: 512                        # Max tokens per chunk
+  chunk_overlap: 64                      # Overlap tokens between chunks
+  min_chunk_size: 50                     # Discard chunks shorter than this
+  tokenizer_encoding: "cl100k_base"      # tiktoken encoding (GPT-4 compatible)
+  separators:                            # Priority order for splitting
+    - "\n\n"
+    - "\n"
+    - ". "
+    - "! "
+    - "? "
+    - " "
+    - ""
+
+# ── Vector Store ──────────────────────────────────────────────────────────────
+vectorstore:
+  collection_name: "rag_documents"
+  distance_metric: "cosine"             # "cosine" | "l2" | "ip"
+
+# ── Retrieval ────────────────────────────────────────────────────────────────
+retrieval:
+  top_k: 5                              # Number of chunks to retrieve
+  use_mmr: true                         # Max Marginal Relevance re-ranking
+  mmr_lambda: 0.5                       # 0=max diversity, 1=max relevance
+  mmr_fetch_k: 20                       # Candidate pool size for MMR
+  score_threshold: 0.0                  # Minimum similarity score (0–1)
+
+# ── LLM (Ollama) ─────────────────────────────────────────────────────────────
+llm:
+  provider: "ollama"
+  model: "llama3.2"                     # Any model pulled via `ollama pull`
+  # Alternatives:
+  # model: "mistral"
+  # model: "phi3"
+  # model: "gemma2"
+  base_url: "http://localhost:11434"
+  temperature: 0.1                      # Low temp for factual RAG answers
+  max_tokens: 1024
+  stream: true                          # Stream tokens to UI
+
+# ── Ingestion ────────────────────────────────────────────────────────────────
+ingestion:
+  supported_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".md"
+    - ".docx"
+    - ".html"
+    - ".htm"
+    - ".csv"
+  recursive: true                       # Recurse into subdirectories
+  skip_existing: true                   # Skip already-ingested files
+
+# ── Text Cleaning ────────────────────────────────────────────────────────────
+cleaning:
+  normalize_unicode: true               # NFC unicode normalization
+  fix_ligatures: true                   # fi fl ff → fi fl ff
+  collapse_whitespace: true             # Multiple spaces → single space
+  remove_control_chars: true            # Strip non-printable chars
+  min_text_length: 20                   # Skip pages/rows shorter than this
